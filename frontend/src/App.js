@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
-import { MenuItem, Select, Button, Container, Box, Typography } from '@mui/material';
+import { MenuItem, Select, Button, Container, Box, Typography, FormControlLabel, Checkbox } from '@mui/material';
 import "react-datepicker/dist/react-datepicker.css";
 import axios from 'axios';
 
 function App() {
   const [selectedFacility, setSelectedFacility] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
+  const [isHoliday, setIsHoliday] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -23,11 +24,12 @@ function App() {
     try {
       const dateObj = new Date(selectedDate);
       const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-      const isHoliday = 0; // You might want to add holiday detection logic here
+      // Convert boolean to integer (0 or 1)
+      const holidayValue = isHoliday ? 1 : 0;
 
       const response = await axios.post('http://localhost:8000/predict', {
         date: dateObj.toISOString().split('T')[0],
-        holiday: isHoliday,
+        holiday: holidayValue,
         weekday: weekday,
         facility: selectedFacility
       });
@@ -95,6 +97,17 @@ function App() {
           />
         </Box>
 
+        <FormControlLabel 
+          control={
+            <Checkbox 
+              checked={isHoliday}
+              onChange={(e) => setIsHoliday(e.target.checked)}
+              color="primary"
+            />
+          } 
+          label="Mark as holiday"
+        />
+
         <Button
           variant="contained"
           onClick={handleSubmit}
@@ -117,6 +130,9 @@ function App() {
             </Typography>
             <Typography>
               <strong>Date:</strong> {selectedDate?.toLocaleDateString()}
+            </Typography>
+            <Typography>
+              <strong>Holiday:</strong> {isHoliday ? 'Yes' : 'No'}
             </Typography>
             <Typography>
               <strong>Predicted Footfall:</strong> {
