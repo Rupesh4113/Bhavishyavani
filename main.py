@@ -8,11 +8,10 @@ Created on Tue Nov 17 21:40:41 2020
 # 1. Library imports
 import uvicorn
 from fastapi import FastAPI
-from BankNotes import BankNote
 import numpy as np
 import pickle
 import pandas as pd
-from predict_model import InputData, preprocess_new_data
+from predict_model import InputData, preprocess_new_data, predict_footfall
 from pydantic import BaseModel
 import joblib
 from datetime import datetime
@@ -55,10 +54,6 @@ def index():
 def get_name(name: str):
     return {'Welcome To Bhavishyawani': f'{name}'}
 
-# 3. Expose the prediction functionality, make a prediction from the passed
-#    JSON data and return the predicted Bank Note with the confidence
-
-
 # Create a FastAPI instance
 
 # Define a POST endpoint
@@ -68,7 +63,7 @@ async def process_data(data: InputData):
     return {"param1": data.param1, "param2": data.param2}
 
 @app.post('/predict')
-def predict_footfall(data: FootfallInput):
+def predict_footfall_api(data: FootfallInput):
     try:
         if model is None:
             return {
@@ -86,11 +81,8 @@ def predict_footfall(data: FootfallInput):
         
         print("Input data:", input_data)  # Debug print
         
-        # Preprocess the data using the updated preprocessing function
-        input_df = preprocess_new_data(input_data)
-        
-        # Make prediction
-        prediction = model.predict(input_df)[0]
+        # Use the predict_footfall function from predict_model.py which ensures non-negative values
+        prediction = predict_footfall(input_data)
         
         return {
             'predicted_footfall': float(prediction),

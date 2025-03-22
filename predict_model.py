@@ -11,6 +11,9 @@ class InputData(BaseModel):
     date: str
     holiday: int
     weekday: str
+    facility: str
+    param1: str = None
+    param2: str = None
 
 def preprocess_new_data(new_data):
     """Preprocess new data for prediction"""
@@ -19,7 +22,10 @@ def preprocess_new_data(new_data):
         
         # Convert to DataFrame if not already
         if not isinstance(new_data, pd.DataFrame):
-            new_data = pd.DataFrame([new_data])
+            if isinstance(new_data, dict):
+                new_data = pd.DataFrame([new_data])
+            else:
+                new_data = pd.DataFrame(new_data)
         
         # Create an empty DataFrame with the exact feature names expected by the model
         expected_features = [
@@ -46,19 +52,22 @@ def preprocess_new_data(new_data):
         result_df = pd.DataFrame(0, index=range(1), columns=expected_features)
         
         # Convert Date to datetime for reference (not used in the model)
-        new_data['Date'] = pd.to_datetime(new_data['Date'])
+        if 'Date' in new_data.columns:
+            new_data['Date'] = pd.to_datetime(new_data['Date'])
         
         # Set facility flag based on input
-        facility = new_data['Facility'].iloc[0]
-        facility_col = f'Facility_{facility}'
-        if facility_col in result_df.columns:
-            result_df[facility_col] = 1
+        if 'Facility' in new_data.columns:
+            facility = new_data['Facility'].iloc[0]
+            facility_col = f'Facility_{facility}'
+            if facility_col in result_df.columns:
+                result_df[facility_col] = 1
             
         # Set day flag based on input
-        weekday = new_data['Weekday'].iloc[0]
-        day_col = f'Day_{weekday}'
-        if day_col in result_df.columns:
-            result_df[day_col] = 1
+        if 'Weekday' in new_data.columns:
+            weekday = new_data['Weekday'].iloc[0]
+            day_col = f'Day_{weekday}'
+            if day_col in result_df.columns:
+                result_df[day_col] = 1
         
         print("Final data shape:", result_df.shape)
         print("Final columns:", result_df.columns.tolist())
@@ -80,8 +89,7 @@ def predict_footfall(new_data_point, model_path='footfall_prediction_model.pkl')
         model = joblib.load(model_path)
         
         # Make prediction
-        prediction = model.predict(preprocessed_data)[0]
-        
+        prediction = model.predict(preprocessed_data)[0]                
         return float(prediction)
     except Exception as e:
         raise Exception(f"Error in prediction: {str(e)}")

@@ -1,2 +1,0 @@
-# Bhavishyavani
-Prediction Model

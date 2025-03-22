@@ -25,21 +25,12 @@ function App() {
       const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
       const isHoliday = 0; // You might want to add holiday detection logic here
 
-      console.log('Sending request with data:', {
-        date: dateObj.toISOString().split('T')[0],
-        holiday: isHoliday,
-        weekday: weekday,
-        facility: selectedFacility
-      });
-
       const response = await axios.post('http://localhost:8000/predict', {
         date: dateObj.toISOString().split('T')[0],
         holiday: isHoliday,
         weekday: weekday,
         facility: selectedFacility
       });
-
-      console.log('Received response:', response.data);
 
       if (response.data.error) {
         throw new Error(response.data.message || response.data.error);
@@ -115,11 +106,6 @@ function App() {
         {error && (
           <Box sx={{ mt: 2, p: 2, bgcolor: '#ffebee', borderRadius: 1 }}>
             <Typography color="error">Error: {error}</Typography>
-            {process.env.NODE_ENV === 'development' && (
-              <Typography variant="caption" component="pre" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
-                {error.stack}
-              </Typography>
-            )}
           </Box>
         )}
 
@@ -142,16 +128,6 @@ function App() {
             <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
               Prediction made at: {new Date(apiResponse.timestamp).toLocaleString()}
             </Typography>
-            {process.env.NODE_ENV === 'development' && (
-              <Box sx={{ mt: 2, p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
-                <Typography variant="caption">
-                  Debug Info:
-                  <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {JSON.stringify(apiResponse, null, 2)}
-                  </pre>
-                </Typography>
-              </Box>
-            )}
           </Box>
         )}
       </Box>
