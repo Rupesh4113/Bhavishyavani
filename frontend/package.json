@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-datepicker": "^4.11.0",
-    "@mui/material": "^5.13.0",
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
-    "axios": "^1.4.0"
+    "@mui/material": "^5.13.0",
+    "axios": "^1.8.4",
+    "react": "^18.2.0",
+    "react-datepicker": "^4.11.0",
+    "react-dom": "^18.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -38,4 +38,4 @@
   "devDependencies": {
     "react-scripts": "5.0.1"
   }
-} 
+}

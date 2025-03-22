@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { MenuItem, Select, Button, Container, Box, Typography } from '@mui/material';
 import "react-datepicker/dist/react-datepicker.css";
+import axios from 'axios';
 
 function App() {
   const [selectedFacility, setSelectedFacility] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [apiResponse, setApiResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const facilities = [
     { id: 1, name: 'Facility 1' },
@@ -16,22 +19,25 @@ function App() {
   ];
 
   const handleSubmit = async () => {
-    // Simulating API call
+    setLoading(true);
+    setError(null);
     try {
-      const response = {
-        success: true,
-        data: {
-          facility: selectedFacility,
-          date: selectedDate,
-          bookingId: Math.floor(Math.random() * 1000000)
-        }
-      };
+      const dateObj = new Date(selectedDate);
+      const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+      const isHoliday = 0; // You might want to add holiday detection logic here
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setApiResponse(response);
+      const response = await axios.post('http://localhost:8000/predict', {
+        date: dateObj.toISOString().split('T')[0],
+        holiday: isHoliday,
+        weekday: weekday
+      });
+
+      setApiResponse(response.data);
     } catch (error) {
-      setApiResponse({ success: false, error: 'Failed to make booking' });
+      setError(error.response?.data?.message || 'Failed to get prediction');
+      setApiResponse(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,15 +93,32 @@ function App() {
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!selectedFacility || !selectedDate}
+          disabled={!selectedFacility || !selectedDate || loading}
         >
-          Predict
+          {loading ? 'Predicting...' : 'Predict'}
         </Button>
+
+        {error && (
+          <Box sx={{ mt: 2, p: 2, bgcolor: '#ffebee', borderRadius: 1 }}>
+            <Typography color="error">{error}</Typography>
+          </Box>
+        )}
 
         {apiResponse && (
           <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-            <Typography variant="h6">Booking Details:</Typography>
-            <pre>{JSON.stringify(apiResponse, null, 2)}</pre>
+            <Typography variant="h6" gutterBottom>Prediction Results:</Typography>
+            <Typography>
+              <strong>Facility:</strong> {selectedFacility}
+            </Typography>
+            <Typography>
+              <strong>Date:</strong> {selectedDate?.toLocaleDateString()}
+            </Typography>
+            <Typography>
+              <strong>Predicted Footfall:</strong> {apiResponse.predicted_footfall?.toFixed(2)}
+            </Typography>
+            <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+              Prediction made at: {new Date(apiResponse.timestamp).toLocaleString()}
+            </Typography>
           </Box>
         )}
       </Box>
