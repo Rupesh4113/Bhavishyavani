@@ -15,6 +15,7 @@ import pandas as pd
 from predict_model import InputData
 # 2. Create the app object
 app = FastAPI()
+app.mount("/", StaticFiles(directory=os.path.join(os.getcwd(), "frontend/build"), html=True), name="static")
 pickle_in = open("football_prediction_model.pkl","rb")
 classifier=pickle.load(pickle_in)
 
