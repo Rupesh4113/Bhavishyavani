@@ -15,41 +15,59 @@ class InputData(BaseModel):
 def preprocess_new_data(new_data):
     """Preprocess new data for prediction"""
     try:
+        print("Starting preprocessing with data:", new_data)
+        
         # Convert to DataFrame if not already
         if not isinstance(new_data, pd.DataFrame):
             new_data = pd.DataFrame([new_data])
-            
-        # Convert Date to datetime
-        new_data['Date'] = pd.to_datetime(new_data['Date'])
-        new_data = new_data.set_index('Date')
         
-        # Add required columns with default values
-        required_columns = [
-            'Additional Order Lunch',
-            'Additional order Snacks',
-            'Lunch Actual',
-            'Lunch Ordered Previous Day',
-            'Occasion Lunch',
-            'Occasion Snacks',
-            'Snacks Actual',
-            'Snacks Ordered Previous Day'
+        # Create an empty DataFrame with the exact feature names expected by the model
+        expected_features = [
+            ' Lunch Ordered Previous Day ', 
+            ' Additional Order Lunch ',
+            ' Total Order\n(F+G) ', 
+            ' Lunch Actual ', 
+            ' Occasion Lunch ',
+            ' Snacks Ordered Previous day ', 
+            ' Additional order Snacks ',
+            ' Snacks Actual ', 
+            ' Occasion Snacks ',
+            'Facility_Bhageerath',
+            'Facility_Ramanujan', 
+            'Facility_Veda Complex', 
+            'Day_Monday', 
+            'Day_Saturday',
+            'Day_Sunday', 
+            'Day_Thursday', 
+            'Day_Tuesday', 
+            'Day_Wednesday'
         ]
         
-        for col in required_columns:
-            new_data[col] = 0  # Set default values
+        result_df = pd.DataFrame(0, index=range(1), columns=expected_features)
         
-        # Convert categorical variables to dummy variables
-        new_data = pd.get_dummies(new_data, columns=['Weekday'], drop_first=True)
+        # Convert Date to datetime for reference (not used in the model)
+        new_data['Date'] = pd.to_datetime(new_data['Date'])
         
-        # Ensure all required dummy columns exist
-        weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        for day in weekdays[1:]:  # Skip first day as it's dropped
-            col = f'Weekday_{day}'
-            if col not in new_data.columns:
-                new_data[col] = 0
-                
-        return new_data
+        # Set facility flag based on input
+        facility = new_data['Facility'].iloc[0]
+        facility_col = f'Facility_{facility}'
+        if facility_col in result_df.columns:
+            result_df[facility_col] = 1
+            
+        # Set day flag based on input
+        weekday = new_data['Weekday'].iloc[0]
+        day_col = f'Day_{weekday}'
+        if day_col in result_df.columns:
+            result_df[day_col] = 1
+        
+        print("Final data shape:", result_df.shape)
+        print("Final columns:", result_df.columns.tolist())
+        
+        return result_df
     except Exception as e:
+        print(f"Preprocessing error: {str(e)}")
+        print("Input data type:", type(new_data))
+        print("Input data content:", new_data)
         raise Exception(f"Error in preprocessing: {str(e)}")
 
 def predict_footfall(new_data_point, model_path='footfall_prediction_model.pkl'):

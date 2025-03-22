@@ -42,7 +42,7 @@ class FootfallInput(BaseModel):
     date: str
     holiday: int
     weekday: str
-    # Add any other required fields based on your model's requirements
+    facility: str  # Add facility field
 
 # 3. Index route, opens automatically on http://127.0.0.1:8000
 @app.get('/')
@@ -81,7 +81,10 @@ def predict_footfall(data: FootfallInput):
             'Date': data.date,
             'Holiday': data.holiday,
             'Weekday': data.weekday,
+            'Facility': data.facility  # Include facility in input data
         }
+        
+        print("Input data:", input_data)  # Debug print
         
         # Preprocess the data using the updated preprocessing function
         input_df = preprocess_new_data(input_data)
@@ -95,6 +98,7 @@ def predict_footfall(data: FootfallInput):
         }
     except Exception as e:
         print(f"Prediction error: {str(e)}")
+        print(f"Full error details: {e.__class__.__name__}")  # Print error class
         return {
             'error': str(e),
             'message': 'Prediction failed'
