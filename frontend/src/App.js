@@ -28,7 +28,7 @@ function App() {
       const holidayValue = isHoliday ? 1 : 0;
 
       const response = await axios.post('http://localhost:8000/predict', {
-        date: dateObj.toISOString().split('T')[0],
+        date: dateObj.toLocaleString().split(',')[0],
         holiday: holidayValue,
         weekday: weekday,
         facility: selectedFacility
